@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="add_question content_container">
+    <form class="form-container wide-form" action="/share_question/{{question_id}}" method="POST" id="add_question">
+        <h1>Share Question</h1>
+        <br>{{ form.user_email(id="user_email", class='input', placeholder="Email") }}
+        {{ form.submit(id="submit", class='submit', placeholder='Add and Test Question') }}
+    </form>
+</div>
+{% endblock content %}

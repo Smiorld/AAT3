@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+{% block content %}
+<script>
+
+    function confirmDelete(id,contributor_number) {
+    var text;
+        if (contributor_number != 1){
+            text = "Are you sure you want to delete this question from your question list? (This will not delete the question from assessments or from other faculty members lists)"
+        } else {
+            text = "Are you sure you want to delete this question? (This will not delete the question from assessments that are using this question)" ;}
+          if (confirm(text) == true) {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/delete_question/"+id;
+      } else {
+
+      }
+    }
+    function shareQuestion(id) {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/share_question/"+id;
+    }
+    function edit(id) {
+      
+      var getUrl = window.location;
+      var baseUrl = getUrl .protocol + "//" + getUrl.host;
+      window.location.href = baseUrl+"/edit_question/"+id;
+  }
+
+    function example(id) {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", baseUrl, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({
+            publish: id
+        }));
+    }
+</script>
+<h1 id="question_header">All Questions</h1>
+<div id="search">
+    <div class="content_container w3-margin-top">
+        <div class="w3-card" >
+            <div class="w3-container w3-margin-top w3-margin-bottom">
+                <form action="/view_questions" class="w3-container w3-margin-top w3-margin-bottom" method="POST">
+                  <p style="display:inline-block;">Sort by: </p>
+                  <select id="field" name="field"> 
+                    <option {% if field=="difficulty" %}selected{% endif %} value="difficulty">difficulty level </option>
+                    <option {% if field=="category" %}selected{% endif %} value="category">category </option>
+                  </select>
+                  <p style="display:inline-block;">= </p>
+                  <input type="text" name="search_value" id="search_value" placeholder="search value" {% if search_value %}value="{{search_value}}"{% endif %}>
+                  <button type="submit" class="w3-button w3-blue" style="border-radius:5px" value="Search">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content_container w3-margin-top">
+{% for question in questions %}
+    <div class="w3-card" >
+        <div class="w3-container w3-margin-top w3-margin-bottom">
+          <table id="question_table">
+            <tr>
+                <th style="width: 180px;">Component</th>
+                <th>Data</th>
+             </tr>
+              <tr>
+                <td>question</td>
+                <td>{{question.question | safe}}</td>
+              </tr>
+              {% if question.is_multiple_choice %}
+              <tr>
+                <td>type</td>
+                <td>multiple choice </td>
+              </tr>
+              <tr>
+                <td>choices</td>
+                <td>{{question.choices}}</td>
+              </tr>
+              <tr>
+                <td>correct answer</td>
+                <td>{{question.correct_answer}}</td>
+              </tr>
+
+            {% else %}
+                 <tr>
+                <td>type</td>
+                <td>code</td>
+              </tr>
+              <tr>
+                <td>arguments</td>
+                <td>{{question.arguments}}</td>
+              </tr>
+              <tr>
+                <td>test inputs</td>
+                <td>{{question.test_inputs}}</td>
+              </tr>
+              <tr>
+                <td>expected outputs</td>
+                <td>{{question.expected_outputs}}</td>
+              </tr>
+            {% endif %}
+            <tr>
+                <td>correct feedback</td>
+                <td>{{question.correct_feedback | safe}}</td>
+            </tr>
+            <tr>
+                <td>incorrect feedback</td>
+                <td>{{question.incorrect_feedback | safe}}</td>
+            </tr>
+            <tr>
+                <td>category</td>
+                <td>{{question.category}}</td>
+            </tr>
+            <tr>
+                <td>difficulty</td>
+                <td>{{question.difficulty}}</td>
+            </tr>
+            <tr>
+                <td>total marks</td>
+                <td>{{question.max_marks}}</td>
+            </tr>
+                    </table>
+        <div class="w3-container">
+            <button class="w3-button w3-blue w3-margin-bottom"  style="border-radius:5px;" onclick="shareQuestion({{question.id}})">share question</button>
+            <button class="w3-button w3-blue w3-margin-bottom" style="border-radius:5px;" onclick="edit({{question.id}})">edit</button>
+            <button class="w3-button w3-blue w3-margin-bottom" style="border-radius:5px;" onclick="confirmDelete({{question.id}},{{question.id | question_contributor_number}})">delete</button>
+        </div>
+    </div>
+    </div>
+{% endfor %}
+</div>
+{% endblock content %}

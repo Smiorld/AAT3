@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content_container back-box">
+    <h1 style="padding: 10px 0 0 0;" class="title text_center">
+        Question Creator
+    </h1>
+    <div class="subtitle text_center">
+        Please select the type of question:
+    </div>
+    <section class="question_options">
+        <figure class="option">
+            <img src="{{ url_for('static', filename='assets/short_answer.svg') }}" alt="short_answer"> 
+            <figcaption class="text_center">Code</figcaption>
+        </figure>
+        <figure class="option">
+            <img src="{{ url_for('static', filename='assets/multiple_choice.svg') }}" alt="multiple_choice"> 
+            <figcaption class="text_center">Multiple Choice</figcaption>
+        </figure>
+        
+    </section>
+    <div class="abs">
+        <div class="align_right">
+            <button onclick="redirect()" class="button next_button">Next</button>
+        </div>
+    </div>
+    
+</div>
+<script>
+    const cbox = document.querySelectorAll("figure");
+    let current_selection = 0
+
+    urls = ['add_coding_question', 'add_mcq']
+    function redirect() {
+        location.href=urls[current_selection];
+    }
+
+    for (let i = 0; i < cbox.length; i++) {
+        cbox[i].addEventListener("click", function() {
+            let cbox2 = document.querySelector(".select");
+            if (cbox2) {
+                cbox2.classList.remove("select")
+            }
+            cbox[i].classList.add("select");
+            current_selection = i
+        });
+    }
+</script>
+{% endblock content %}

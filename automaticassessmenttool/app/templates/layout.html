@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+        <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <title>Automatic Assessment Tool</title>
+        <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+        <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600&display=swap" rel="stylesheet">
+    </head>
+    <body>
+    <header>
+      <nav>
+        <ul class="topnav" id="top_navig_bar">
+            <li><a id="home" href="{{ url_for('home') }}">Home</a></li>
+            {% if current_user.is_authenticated %}
+                {% if not current_user.is_student %}
+                <li><a href="{{ url_for('add_question') }}">Add Question</a></li>
+                <li><a href="{{ url_for('add_assessments') }}">Add Assessment</a></li>
+                <li><a href="{{ url_for('faculty_assessments') }}">View Assessments</a></li>
+                <li><a href="{{ url_for('view_questions') }}">View Questions</a></li>
+                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                {% else %}
+                <li><a href="{{ url_for('student_assessments') }}">Take Assessments</a></li>
+                 <li><a href="{{ url_for('student_review') }}">Review</a></li>
+                {% endif %}
+            {% endif %}
+            {% if not current_user.is_authenticated %}
+            <li><a id="register" href="{{ url_for('register') }}">Register</a></li>
+            <li><a id="login" href="{{ url_for('login') }}">Login</a></li>
+            {% endif %}
+            {% if current_user.is_authenticated %}
+            <li><a id="logout" href="{{ url_for('logout') }}">Logout </a></li>
+            {% endif %}
+            <li>
+                <div id="pers_greet">
+                {% if current_user.is_active %}
+                <p>| Hello, {{ current_user.last_name }}</p>
+                {% else %}
+                <p>| Hello, guest </p>
+                {% endif %} </div>
+            </li>
+        </ul>
+    </nav>
+    </header>
+        <div class="w3-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class=flashes>
+                {% for category,message in messages %}
+                {% if category=="message" %}
+                <div class="w3-panel w3-green w3-display-container">
+                    <span onclick="this.parentElement.style.display='none'" class="w3-button w3-green w3-large w3-display-topright">&times;</span>
+                    <h3>Success!</h3> 
+                    <p>{{message}}</p>
+                </div>
+                {% endif %}
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class=flashes>
+                {% for category,message in messages %}
+                {% if category=="warning" %}
+                <div class="w3-panel w3-yellow w3-display-container">
+                    <span onclick="this.parentElement.style.display='none'" class="w3-button w3-yellow w3-large w3-display-topright">&times;</span>
+                    <h3>Warning!</h3>
+                    <p>{{message}}</p>
+                </div>
+                {% endif %}
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+              {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class=flashes>
+                {% for category,message in messages %}
+                {% if category=="error" %}
+                <div class="w3-panel w3-red w3-display-container">
+                    <span onclick="this.parentElement.style.display='none'" class="w3-button w3-red w3-large w3-display-topright">&times;</span>
+                    <h3>Error!</h3>
+                    <p>{{message}}</p>
+                </div>
+                {% endif %}
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+            <!-- {% for message in get_flashed_messages() %}
+            <div id="alert" class="center alert" onclick="fadeOutEffect()">
+                <p class="tertiary">{{ message }}</p>
+            </div>
+            {% endfor %} -->
+        </div>
+
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+        <footer id="footer" class="footer">
+            <!-- Footer -->
+        </footer>
+
+    </body>
+</html>

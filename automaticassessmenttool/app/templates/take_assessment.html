@@ -1,0 +1,205 @@
+{% extends "layout.html" %}
+{% block content %}
+{% set current_question = 0 %}
+<script>
+	test_check = new Set()
+    // coding question JS
+    function runTests(button) {
+      document.getElementById("results"+button).innerHTML = "Running...";
+      const question_id = button;
+      const code = document.getElementById("code"+button).value;
+      const assessment_id = "{{assessment_id}}" 
+	  let xhr = new XMLHttpRequest();
+  
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+          document.getElementById("results"+button).innerHTML = xhr.responseText;
+        }
+      }
+	  console.log("1")
+      xhr.open("POST", "http://127.0.0.1:5000/test");
+	  console.log("2")
+
+      xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+      xhr.send("code=" + encodeURIComponent(code) + "&question_id=" + question_id + "&assessment_id=" + assessment_id + "&faculty_test="+ 0);
+	  test_check.add(question_id)
+    }
+  </script>
+{% set MCQ = namespace(value=0) %}
+{% for i in range(questions|length) %}
+	{% if questions[loop.index0].question.is_multiple_choice %}   
+		{% set MCQ.value = MCQ.value + 1 %}
+	{% endif %}
+{% endfor %}
+<div id = "j-left">
+<div id = "take_assessment_flex">
+	{% for i in range(questions|length) %}
+		{% set current_question = loop.index-1%}
+		<div id = "question{{current_question}}" class="w3-margin-top question_container" style = "display: none">
+			{% if current_question != questions|length-1 %}
+				<button class="w3-button w3-blue w3-margin-bottom align_right" style="border-radius:5px;" onclick="next()">next</button>
+			{% endif %}
+			{% if assessment.time_allotted > 0 %}
+				<span class="countdown">{{(t//1)|round|int}}:{{(t%1*60)|round|int if (t%1*60)|round|int >9 else '0'~(t%1*60)|round|int}}</span>
+			{% endif %}
+			{% if current_question != 0 %}
+				<button class="w3-button w3-blue w3-margin-bottom align_left" style="border-radius:5px;" onclick="prev()">prev</button>
+			{% endif %}
+			<div class="w3-card" style="margin-top:50px;">
+				<div class="w3-blue w3-container assessment_title">Question {{current_question+1}} | Marks Available: {{questions[current_question].question.max_marks}}</div>
+				<div class="w3-container">
+					<p class="assessment_title"><div style="font-size: inherit;">{{questions[current_question].question.question | safe}}</div></p>
+					{% if questions[current_question].question.question_description%}
+						<p class="assessment_descript">{{questions[current_question].question.question_description}}</p>
+					{% endif %}
+					<div style="padding-top: 15px">
+						{% if questions[current_question].question.is_multiple_choice %}   
+							{% set choice_string = questions[current_question].question.choices.split(',') %}
+								{% for choice in choice_string %}
+								<p><input type="checkbox" id="{{'checkbox'~questions[current_question].question.id~'-'~loop.index}}" name= "{{choice}}" onclick="save_answer('{{questions[current_question].question.id}}'); onBoxClicked(this.id)"> {{choice}}</p>
+								{% endfor %}
+						{% else %}
+						<div class="code_area ptop">
+							<textarea rows="5" columns="40" class="code_input" id="code{{questions[current_question].question.id}}" autofocus>def solution({{questions[current_question].question.arguments}}):</textarea>
+							<div style = "font-style: italic; font-size: .8em;"><button style = "font-style: normal;" onclick="runTests(this.value)" value="{{questions[current_question].question.id}}" class="run_tests">RUN TESTS</button> Please note: if you do not run tests, your answer will not be submitted.</div>
+							</br>
+							<span id="results{{questions[current_question].question.id}}"></span>
+						</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>			
+		</div>
+	{% endfor %}
+	
+</div>
+</div>
+<div id="j-right">
+	<aside style="font-size: inherit;">
+		{% for i in range(questions|length) %}
+		{%set current_question = loop.index-1%}
+		<p style="font-weight: 600;">Question {{loop.index}}: </p>
+		<p style="font-size: .9rem !important;  font-size:inherit !important;">{{questions[current_question].question.question | safe}}</p>
+		<button class="w3-button w3-blue w3-margin-bottom" style="border-radius:5px;" onclick="jump('{{current_question}}')">Jump</button>
+			</br>
+		{% endfor %}
+		<button class="w3-button w3-blue w3-margin-bottom align_right" style="border-radius:5px; margin-bottom: 16px;" onclick="submit()">Submit</button>	
+	</aside>
+</div>
+
+<script>
+	current = 0
+	//create dictionary to hold answers records answers as students go back and forth through assessment
+	answer_dict={}
+	choices_dict = JSON.parse(`{{choices_dict|tojson|safe}}`)
+	last_box = null
+	function onBoxClicked(box) {
+		last_box=box
+	}
+	function save_answer(x){
+		selected = []
+		$(`#question${current} input:checked`).each(function() {
+			selected.push($(this).attr('name'));
+		})
+		answer_dict[x] = selected;
+
+		if (answer_dict[x].length > choices_dict[x]) {
+			answer_dict[x].pop()
+			$(`#${last_box}`).prop('checked', false);
+		}
+	}
+	
+	function submit(){
+		
+		if (Object.keys(answer_dict).length == "{{MCQ.value}}" && test_check.size == "{{questions|length - MCQ.value}}")
+			fetch(`${window.origin}/auto_assess/{{ assessment_id }}`, {
+				method: "POST",
+				credentials: "include",
+				body: JSON.stringify([answer_dict,"{{t}}"*60-time-1]),
+				cache: "no-cache",
+				headers: new Headers({
+					"content-type": "application/json"
+				})
+			})
+			.then(function (response) {
+				if (response.status != 200) {
+					console.log("response not 200")
+					return ;
+				}
+				response.json().then(function (data) {
+					console.log(data)
+				})	
+				if ("{{assessment.is_summative}}" == "True"){
+					window.location.href = `${window.origin}/student_assessments`
+				}
+				else {
+					window.location.href = `${window.origin}/assessment_feedback/{{ assessment_id }}`
+				}		
+			})
+			else {
+				alert("You have not completed all questions in the assessment. Please ensure you have entered an answer for each question before submitting.")
+			}
+	}
+
+
+	//Next/previous JS	
+	document.getElementById(`question${current}`).style.display = "block";
+    function next(){ 
+        document.getElementById(`question${current}`).style.display = "none";
+        current +=1
+        document.getElementById(`question${current}`).style.display = "block";
+    }
+    function prev(){ 
+        document.getElementById(`question${current}`).style.display = "none";
+        current -=1
+        document.getElementById(`question${current}`).style.display = "block";
+    }
+	function jump(i){ 
+		if (current != i) {
+			document.getElementById(`question${current}`).style.display = "none";
+			current = parseInt(i)
+			document.getElementById(`question${current}`).style.display = "block";
+		}
+    }
+
+	// Timer is here
+	time = "{{t}}"*60-1;
+	countdown_el = document.getElementsByClassName('countdown');
+	setInterval(updateCountdown, 1000);
+	function updateCountdown() {
+		minutes = Math.floor(time/60);
+		seconds = time % 60;
+		seconds = seconds <10 ? '0' +seconds : seconds;
+		for (i in countdown_el) {
+			countdown_el[i].innerHTML = `${minutes}:${seconds}`;
+		}
+		time--;
+		if (time == -1 && "{{assessment.time_allotted > 0}}"){
+			fetch(`${window.origin}/auto_submit_assess/{{ assessment_id }}`, {
+				method: "POST",
+				credentials: "include",
+				body: JSON.stringify([answer_dict,"{{t}}"*60-time-1]),
+				cache: "no-cache",
+				headers: new Headers({
+					"content-type": "application/json"
+				})
+			})
+			.then(function (response) {
+				if (response.status != 200) {
+					console.log("response not 200")
+					return ;
+				}
+				response.json().then(function (data) {
+					console.log(data)
+				})
+				if ("{{assessment.is_summative}}" == "True"){
+					window.location.href = `${window.origin}/student_assessments`
+				}
+				else {
+					window.location.href = `${window.origin}/assessment_feedback/{{ assessment_id }}`
+				}	
+			})
+		}
+	}
+</script>
+{% endblock content %}

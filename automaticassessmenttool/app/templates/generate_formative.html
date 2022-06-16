@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content_container">
+    <form class="form-container wide-form" method="POST">
+        <h1>Generate Formative Assessment</h1>
+        <p style = "font-size: .8em;">Choose the parameters for your new assessment. Leaving a field blank will mean that all possible choices for that field will be possible questions.</p>
+        <p>Category</p>
+        {{form.category}}
+        <p>Difficulty</p>
+        <p>{{form.easy}} Easy</p>
+        <p>{{form.medium}} Medium</p>
+        <p>{{form.hard}} Hard</p>
+        <p>Question Type</p>
+        {{form.question_type}}
+        <p>Number of Questions</p>
+        {{form.question_quant}}
+        <p style = "font-size: .8em;">Please note; upon hitting generate you will be returned to the assessment dashboard, where your new assessment will be available to be taken.</p>
+        {{form.submit}}
+    </form>
+</div>
+{% endblock content %}

@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content_container w3-margin-top">
+    <div class="w3-card" >
+        <div class="w3-container w3-margin-top w3-margin-bottom">
+            <P>You have successfully completed the assessment {{assessment.assessment_name}}</P>
+            <p>Return to assessment dashboard or continue to assessment feedback?</p>
+            <a href="{{ url_for('student_assessments') }}"><button class="w3-button w3-blue w3-margin-bottom"  style="border-radius:5px;">Assessment Dashboard</button></a>
+            <a href="{{ url_for('assessment_feedback', assessment_id=assessment.id) }}"><button class="w3-button w3-blue w3-margin-bottom"  style="border-radius:5px;">Assessment Feedback</button></a>
+        </div>
+    </div>
+</div>
+{% endblock content %}

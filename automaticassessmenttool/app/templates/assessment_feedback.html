@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content_container w3-margin-top">
+    <h1 class="title text_center">
+        {{assessment.assessment_name}} Feedback
+    </h1>
+    {% if assessment.is_summative == False and not assessment.module_id == 999%}
+        <form method = "POST" class="align_right" onchange="submit()">
+            Currently showing: {{form.attempt}}
+        </form>
+    {% endif %}
+    <p>Marks: {{current_PSA.awarded_marks}} / {{assessment.total_marks}}</p>
+    <p>Time Taken: {{(current_PSA.time_taken//60)|round|int}}:{{(current_PSA.time_taken%60)|round|int if (current_PSA.time_taken%60)|round|int >9 else '0'~(current_PSA.time_taken%60)|round|int}}</p>
+</div>
+{% for i in range(questions|length) %}
+    {% set current_question = loop.index-1%}
+    {% if questions[current_question].question.is_multiple_choice %}
+        {% set correct = answers[current_question].student_answer == questions[current_question].question.correct_answer %}
+        <div class="content_container w3-margin-top">
+            <div class="w3-card" style="margin-top:35px;">
+                <div class="w3-blue w3-container">Question {{current_question+1}} | Marks received:
+                    {% if correct %} 
+                        {{questions[current_question].question.max_marks}}/{{questions[current_question].question.max_marks}} 
+                    {% else %} 
+                        {{answers[current_question].marks}}/{{questions[current_question].question.max_marks}}
+                    {% endif %}
+                </div>
+                <div class="w3-container">
+                    <p class = "assessment_title">{{questions[current_question].question.question  | safe}} </p>
+                    <p class = "assessment_descript">{% if questions[current_question].question.question_description %} {{questions[current_question].question.question_description  | safe}} {% endif %}</p>
+                </div>
+                <div class ="feedback_flex w3_container">
+                    <div class = "feedback_container">
+                        <p>The answer you submitted:</p>
+                        <p>{{answers[current_question].student_answer}}</p>
+                    </div>
+                    <div class = "feedback_container w3_container">
+                        {% if assessment.is_summative %}
+                            The correct answer was:
+                            {{questions[current_question].question.correct_answer}}
+                        {% else %} 
+                            {% if correct or assessment.module_id == 999%} 
+                                <p>The correct answer was:</p>
+                                {{questions[current_question].question.correct_answer}}
+                            {% else %}
+                                Correct answers not revealed for Formative Assessment. Why not give is another go?
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div style = "padding: 0.01em 16px">
+                    {% if correct %}
+                        <p>Congratulations! You answered correctly.</p>
+                        <pre>{{questions[current_question].question.correct_feedback | safe}}</pre>
+                    {% elif answers[current_question].marks == 0 %} 
+                        <p>Sorry, that was incorrect.</p>
+                        <pre>{{questions[current_question].question.incorrect_feedback | safe}}</pre>
+                    {% else %} 
+                        <p> You recieved partial marks.</p>
+                        <pre>{{questions[current_question].question.incorrect_feedback | safe}}</pre>
+                    {% endif %}
+                </div>					
+            </div>
+        </div>
+    {% else %} 
+        {% set correct = answers[current_question].marks == questions[current_question].question.max_marks %}
+        <div class="content_container w3-margin-top">
+            <div class="w3-card" style="margin-top:35px;">
+                <div class="w3-blue w3-container">Question {{current_question+1}} | Marks recieved: 
+                    {% if correct %} 
+                        {{questions[current_question].question.max_marks}}/{{questions[current_question].question.max_marks}} 
+                    {% else %} 
+                        {{answers[current_question].marks}}/{{questions[current_question].question.max_marks}}
+                    {% endif %}
+                </div>
+                <div class="w3-container">
+                    <p class = "assessment_title">{{questions[current_question].question.question | safe}}</p>
+                    <p class = "assessment_descript">{% if questions[current_question].question.question_description %} {{questions[current_question].question.question_description  | safe}} {% endif %}</p>
+                </div>
+                <div class = "feedback_container" style = "width: 95%">
+                    <p>The answer you submitted:</p>
+                    <pre class = "codebox">{{answers[current_question].student_answer}}</pre>
+                </div>
+                <div class="w3-container">
+                    {% if correct %}
+                        <p>Congratulations! You answered correctly.</p>
+                        <pre>{{questions[current_question].question.correct_feedback | safe}}</pre>
+                    {% else %} 
+                        <p>Sorry, that was incorrect.</p>
+                        <pre>{{questions[current_question].question.incorrect_feedback | safe}}</pre>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+<a href="{{ url_for('student_assessments') }}"><button class="w3-button w3-blue w3-margin-bottom align_right" style="border-radius:5px; margin-top: 10px">Return to Assessment Dashboard</button></a>
+{% if assessment.is_summative == False and not assessment.module_id == 999%}
+    <a href="{{ url_for('take_assessment', assessment_id=assessment.id) }}"><button class="w3-button w3-blue w3-margin-bottom align_right" style="border-radius:5px; margin-top: 10px">Try again?</button></a>
+{% endif %}
+{% endblock content %}

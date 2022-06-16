@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block content %}
+<script>
+  // coding question JS
+    function runTests(button) {
+      document.getElementById("results"+button).innerHTML = "Running...";
+      const question_id = button;
+      const code = document.getElementById("code"+button).value;
+	  const assessment_id = "{{assessment_id}}"
+	  let xhr = new XMLHttpRequest();
+
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+          document.getElementById("results"+button).innerHTML = xhr.responseText;
+        }
+      }
+      xhr.open("POST", "http://127.0.0.1:5000/test");
+      xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+      xhr.send("code=" + encodeURIComponent(code) + "&question_id=" + question_id + "&assessment_id=" + assessment_id + "&faculty_test="+1);
+    }
+</script>
+<div class="container w3-margin-top">
+  <div class="question">
+    <h2><strong>WELCOME TO THE QUESTION TESTER</strong></h2>
+    <h2>You can now test your question to check that it works as expected.</h2><br>
+    <h2><strong>QUESTION</strong></h2>
+    <span id="questionText">{{question.question | safe}}</span>
+  </div>
+  <div class="p-top code_area">
+    <textarea rows="20" class="code_input" id="code{{question.id}}" autofocus>def solution({{question.arguments}}):</textarea>
+    <div>
+      <button onclick="runTests(this.value)" value="{{question.id}}" class="run_tests">Run Tests</button>
+      <button onclick="window.location.href='{{url_for('edit_question', question_id=question.id)}}'" class="edit_ques run_tests">Edit Question</button>
+      <button onclick="window.location.href='{{url_for('view_questions')}}'" class="run_tests">All Questions</button>
+    </div>
+    <span id="results{{question.id}}"></span>
+  </div>
+  </div>
+</div>
+
+{% endblock content %}

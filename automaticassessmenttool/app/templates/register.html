@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+
+  <div class="form-container">
+    <h1>Register</h1>
+      <form method="POST" action="">
+        {{ form.csrf_token }}
+        <p class="user_input">{{ form.first_name(class="input")}}</p>
+        <p class="user_input">{{ form.last_name(class="input")}}</p>
+        <p class="user_input">{{ form.email(class="input")}}</p>
+        <p class="user_input">{{ form.password(class="input")}}</p>
+        <p class="user_input">{{ form.confirm_password(class="input")}}</p>
+        <input type="submit" value="Register">
+      </form>
+     {% for field, errors in form.errors.items() %}
+    <div class="msg-container error-message" >{{ ' '.join(errors) }}</div>
+    {% endfor %}
+  </div>
+{% endblock content%}

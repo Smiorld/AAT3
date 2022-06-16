@@ -1,0 +1,468 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{{ ckeditor.load() }}
+
+<div class="box">
+    <h1>Save MCQ</h1>
+    <form class="wide-form" action="/add_mcq" method="POST" id="add_question">
+
+        <!-- <br><p class="form-label mt-1">Your question</p> -->
+        <div class="input-control">
+            <textarea class="input" id="question" name="question" placeholder="Question..." type="text" value=""></textarea>
+            <div class="input-error"></div>
+        </div>
+            
+        <!-- <a href="#" id="description_link" class="show-hide">Add description</a>
+        <div class="input-control" style="display: none;">
+            <span class="greyed-text">Description, if required</span>
+            <textarea class="input" id="description" name="description" placeholder="Description" type="text" value=""></textarea>
+            <div class="input-error"></div>
+        </div> -->
+
+        <!-- <p class="form-label mt-1">Options</p> -->
+        <div class="input-control" id="options">
+            {% for i in range(4) %}
+            <div class="input-control options-container" id="options-div{{i}}">
+                <input type="checkbox" id="checkbox{{i}}" class="checkbox-round mr-1 correct-checkbox" name="correct">
+                <input type="text", id="option{{i}}" class="input draggable-option" placeholder="Option {{i+1}}">
+                <i id="delete{{i}}" class="material-icons md-24" onclick="deleteOption(event)">delete</i>
+                <p class="filterbox input-error"><br></p>
+            </div>
+            {% endfor %}
+            <div class="input-error"></div>
+            <div class="buttons flex">
+                <a href="#" onclick="addOption(event)" id="add_option" class="w3-button w3-round-xxlarge w3-medium w3-blue w3-hover-blue hover-effect mt-1">Add option</a>
+            </div>
+
+        </div>   
+
+        <p class=" mt-1">Maximum marks available:</p>
+        <div class="input-control">
+            <input class="input" id="max_marks" name="max_marks" placeholder="Maximum marks available..." type="number" value="">
+            <div class="input-error"></div>
+        </div>
+
+        
+
+        <p class="">Question difficulty:</p>
+        <div class="input-control">
+            <!-- <input class="input" id="difficulty" name="difficulty" placeholder="Difficulty level..." type="number" value=""> -->
+            <select class="input" id="difficulty" name="difficulty" placeholder="Difficulty" ><option value="0"></option><option value="1">Easy</option><option value="2">Medium</option><option value="3">Hard</option></select>
+            <div class="input-error"></div>
+        </div>
+        
+        <!-- <a href="#" id="question_tag_link" class="show-hide">Add question tags</a> -->
+        <p class="">Question category:</p>
+        <div class="input-control"> <!-- style="display: none;"> -->
+            <!-- <span class="greyed-text">Question tags will help lecturers search questions by category</span> -->
+            <input class="input" id="category" name="category" placeholder="Question category" type="text" value="">
+            <div class="input-error"></div>
+        </div>
+
+        <div class="buttons flex mt-1 mb-1">
+            <div class="margin-auto"><strong>Feedbacks</strong></div>
+            <button onclick="generateFeedback(event)" id="generate_options" class="w3-button w3-round-xxlarge w3-medium w3-blue w3-hover-blue hover-effect margin-auto"><i id="feedback_loader" class="fa"></i> Generate Feedbacks</button>
+        </div>
+        <!-- <p class="">Correct Feedback:</p>
+        <div class="input-control">
+            <input class="input" id="category" name="category" placeholder="Question category" type="text" value="">
+            <div class="input-error"></div>
+        </div>
+        <p class="">Incorrect Feedback:</p>
+        <div class="input-control">
+            <input class="input" id="category" name="category" placeholder="Question category" type="text" value="">
+            <div class="input-error"></div>
+        </div>  -->
+        
+        <p class="greyed-text mt-1 mb-1">If left empty, an automated feedback will be generated with the correct answers</p>
+        <p class="">Feedback for correct answers:</p>
+        <div class="input-control">
+            <textarea class="input mt-1" id="correct_feedback" name="question" placeholder="Correct Feedback" type="text" value=""></textarea>
+            <div class="input-error"></div>
+        </div>
+        <!-- {{ form.correct_feedback(id="correct_feedback", class='input mt-1')}} -->
+        <br><p class="">Feedback for incorrect answers:</p>
+        <div class="input-control">
+            <textarea class="input mt-1" id="incorrect_feedback" name="question" placeholder="Correct Feedback" type="text" value=""></textarea>
+            <div class="input-error"></div>
+        </div>
+        <!-- {{ form.incorrect_feedback(id="incorrect_feedback", class='input mt-1')}} -->
+        <br>
+        
+        <input class="submit mt-1" onclick="postData(event)" id="submit" name="submit" placeholder="Save Question" type="submit" value="Save Question">
+    </form>
+</div>
+<script>
+    const startLoading = () => {
+        const loader = document.querySelector('#feedback_loader')
+        loader.classList.add("fa-circle-o-notch")
+        loader.classList.add("fa-spin")
+    }
+    const stopLoading = () => {
+        const loader = document.querySelector('#feedback_loader')
+        loader.classList.remove("fa-circle-o-notch")
+        loader.classList.remove("fa-spin")
+    }
+    const generateFeedback = (e) => {
+        e.preventDefault()
+        startLoading()
+        const question = document.querySelector("#question").value
+        const [optionsDict, errorOptions] = parseOptions(options);
+        if (errorOptions > 0) {
+            stopLoading()
+            return
+        }
+
+        if (question !== null || question !== "") {
+            const params = {
+                question: question,
+                options: optionsDict
+            }
+            const xhr = new XMLHttpRequest()
+            var getUrl = window.location;
+            var baseUrl = getUrl.protocol + "//" + getUrl.host + "/" + "api/generate_feedback_mcq";
+            console.log(baseUrl)
+            xhr.responseType = 'json';
+            xhr.open('POST', baseUrl)
+            xhr.setRequestHeader('Content-type', 'application/json')
+            xhr.send(JSON.stringify(params)) // Make sure to stringify
+            xhr.onload = function() {
+                var jsonResponse = xhr.response;
+                stopLoading()
+                console.log(jsonResponse)
+                document.querySelector("#correct_feedback").value = jsonResponse["correct_feedback"];
+                document.querySelector("#incorrect_feedback").value = jsonResponse["incorrect_feedback"];
+            }
+        }
+    }
+    const initializeValues = () => {
+        var currentUrl = window.location.href
+        var url = new URL(currentUrl);
+        var questionID = url.searchParams.get("question_id");
+        if (questionID !== null) {
+            const params = {
+                question_id: questionID
+            }
+            const xhr = new XMLHttpRequest()
+            var getUrl = window.location;
+            var baseUrl = getUrl.protocol + "//" + getUrl.host + "/" + "api/get_questions";
+            console.log(baseUrl)
+            xhr.responseType = 'json';
+            xhr.open('POST', baseUrl)
+            xhr.setRequestHeader('Content-type', 'application/json')
+            xhr.send(JSON.stringify(params)) // Make sure to stringify
+            xhr.onload = function() {
+                var jsonResponse = xhr.response;
+                if (jsonResponse["is_multiple_choice"] !== true) {
+                    return
+                }
+
+                const difficultyMap = {
+                    Easy: 1,
+                    Medium: 2,
+                    Hard: 3,
+                }
+                jsonResponse["difficulty"] = difficultyMap[jsonResponse["difficulty"]]
+                
+
+                var idMapper = {
+                    question: "#question",
+                    max_marks: "#max_marks",
+                    difficulty: "#difficulty",
+                    category: "#category",
+                    correct_feedback: "#correct_feedback",
+                    incorrect_feedback: "#incorrect_feedback",
+                }
+                
+                for (var key of Object.keys(idMapper)) {
+                    console.log(key)
+                    if (jsonResponse[key] !== "") {
+                        //document.querySelector(idMapper[key]).click();
+                        document.querySelector(idMapper[key]).value = jsonResponse[key];
+                    }
+                }
+                
+                if (jsonResponse["options"].length > 0) {
+                    for (let i=0; i<jsonResponse["options"].length; i++) {
+                        document.querySelector(`#option${i}`).value = jsonResponse["options"][i]["optionVal"];
+                        document.querySelector(`#checkbox${i}`).checked = jsonResponse["options"][i]["correctness"];
+                    }
+                }
+            }
+        }
+    }
+    window.onload = initializeValues;
+
+    function confirmSave(id) {
+      let text = "Are you sure you want overwrite the current question (id: "+id+") ?" ;
+      return confirm(text);
+    }
+
+    const cbox = document.querySelectorAll(".show-hide");
+    for (let i = 0; i < cbox.length; i++) {
+        cbox[i].addEventListener("click", function(e) {
+            e.preventDefault();
+            let next = cbox[i].nextElementSibling;
+            next.style.display = 'block';
+            cbox[i].style.display = 'none';
+        });
+    }
+
+    const setError = (element, message) => {
+        const inputControl = element.parentElement;
+        const errorDisplay = inputControl.querySelector('.input-error');
+
+        errorDisplay.innerText = message;
+        inputControl.classList.add('error');
+        inputControl.classList.remove('success')
+    }
+
+    const setSuccess = element => {
+        const inputControl = element.parentElement;
+        const errorDisplay = inputControl.querySelector('.input-error');
+
+        errorDisplay.innerText = '';
+        inputControl.classList.add('success');
+        inputControl.classList.remove('error');
+    };
+
+    const validateInputs = (category, question, description, maxMarks, difficulty, correctFeedback, incorrectFeedback, options) => {
+        const categoryVal = getValueFromElement(category);
+        const questionVal =  getValueFromElement(question);
+        const descriptionVal = getValueFromElement(description);
+        const maxMarksVal = getValueFromElement(maxMarks);
+        const difficultyVal = getValueFromElement(difficulty);
+        const correctFeedbackVal = getValueFromElement(correctFeedback)
+        const incorrectFeedbackVal = getValueFromElement(incorrectFeedback)
+        // const optionsVal = getValueFromElement(options);
+
+        let errors = 0
+        if(questionVal === '') {
+            setError(question, 'Question is required');
+            errors++;
+        } else {
+            setSuccess(question);
+        }
+        if(maxMarksVal === '') {
+            setError(maxMarks, 'Max marks is required');
+            errors++;
+        } else {
+            setSuccess(maxMarks);
+        }
+        if(difficultyVal === '' || difficultyVal <= 0) {
+            setError(difficulty, 'Difficulty is required');
+            errors++;
+        } else {
+            setSuccess(difficulty);
+        }
+        // if(correctFeedbackVal === '' || correctFeedbackVal <= 0) {
+        //     setError(difficulty, 'Difficulty is required');
+        //     errors++;
+        // } else {
+        //     setSuccess(difficulty);
+        // }
+        // if(incorrectFeedbackVal === '' || incorrectFeedbackVal <= 0) {
+        //     setError(difficulty, 'Incorrect is required');
+        //     errors++;
+        // } else {
+        //     setSuccess(difficulty);
+        // }
+        const [optionsDict, errorOptions] = parseOptions(options);
+        errors+=errorOptions
+        correctCount = 0
+        for (const obj of Object.entries(optionsDict)) {
+            console.log(obj)
+            if (obj[1].correctness === true) {
+                correctCount++
+            }
+        }
+        console.log("Correct Count", correctCount)
+        if (correctCount === 0) {
+            const errorDisplay = Array.from(options.getElementsByClassName('input-error')).pop();
+            errorDisplay.innerText = 'Atleast one option must be correct';
+            errorDisplay.classList.add("mt-1")
+            // inputControl.classList.add('error');
+            // inputControl.classList.remove('success')
+            errors++;
+        } 
+        else {
+            const errorDisplay = Array.from(options.getElementsByClassName('input-error')).pop();
+            errorDisplay.innerText = ""
+            errorDisplay.classList.remove("mt-1")
+            // inputControl.classList.remove('error');
+            // inputControl.classList.add('success')
+        }
+        return [errors, correctCount, optionsDict];
+    };
+
+    const parseOptions = (options) => {
+        let errors = 0
+        let optionsDict = []
+        let optionsList = options.children;
+        for(var i=0; i<optionsList.length-2; i++){
+            let currentOption = optionsList[i];
+            currentOptionVal = getValueFromElement(currentOption.querySelector(`#option${i}`))
+            if(currentOptionVal === '') {
+                setError(currentOption.querySelector(`#option${i}`), 'Option cannot be empty');
+                errors++;
+            } else {
+                setSuccess(currentOption.querySelector(`#option${i}`));
+            }
+            correctness = currentOption.querySelector('.correct-checkbox').checked
+            optionsDict.push({
+                correctness: correctness,
+                optionVal: currentOptionVal
+            })
+        }
+        return [optionsDict, errors]
+    }
+
+    const getValueFromElement = (selector) => {
+        return (selector === null) ? "" : selector.value.trim()
+    };
+
+    function deleteOption(e) {
+        const deleteOption = e.target;
+        let initNumOptions = document.querySelector('#options').children.length-2
+        console.log("Options")
+        console.log(initNumOptions)
+        if (initNumOptions <= 1) {
+            setError(deleteOption.parentElement.querySelector(`#option0`), 'Atleast one option is required');
+            return;
+        }
+
+        const elementID = deleteOption.id
+        const currentIndex = parseInt(elementID.slice(elementID.length-1))
+        console.log(currentIndex)
+        deleteOption.parentElement.remove()
+
+        let options = document.querySelector('#options')
+        let optionsList = options.children;
+        const numOptions = optionsList.length-1
+
+        for(var i=currentIndex; i<numOptions-1; i++){
+            let currentOptionDiv = optionsList[i];
+            currentOptionDiv.setAttribute("id", `options-div${i}`)
+            checkbox = currentOptionDiv.querySelector(`#checkbox${i+1}`)
+            checkbox.setAttribute("id", `checkbox${i}`)
+
+            input = currentOptionDiv.querySelector(`#option${i+1}`)
+            input.setAttribute("id", `option${i}`)
+            input.setAttribute("placeholder", `Option ${i+1}`)
+
+            deleteIcon = currentOptionDiv.querySelector(`#delete${i+1}`)
+            deleteIcon.setAttribute("id", `delete${i}`)
+        }
+    }
+
+    function addOption(e) {
+        e.preventDefault();
+        const options = document.querySelector('#options')
+        const num_options = options.children.length-1
+        const lastOption = document.querySelector(`#options-div${num_options-2}`);
+
+        var el = document.createElement("div");
+        el.setAttribute("id", `options-div${num_options-1}`)
+        el.setAttribute("class", "input-control options-container")
+
+        var checkbox = document.createElement("input")
+        checkbox.setAttribute("id", `checkbox${num_options-1}`)
+        checkbox.setAttribute("type", "checkbox")
+        checkbox.setAttribute("class", "checkbox-round mr-1 correct-checkbox")
+        checkbox.setAttribute("name", "correct")
+
+        var optionBox = document.createElement("input")
+        optionBox.setAttribute("type", "text")
+        optionBox.setAttribute("class", "input draggable-option")
+        optionBox.setAttribute("id", `option${num_options-1}`)
+        optionBox.setAttribute("placeholder", `Option ${num_options}`)
+
+        var icon = document.createElement("i")
+        icon.setAttribute("id", `delete${num_options-1}`)
+        icon.setAttribute("class", "material-icons md-24")
+        icon.setAttribute("onclick", "deleteOption(event)")
+        icon.innerText = "delete"
+
+        var error = document.createElement("div")
+        error.setAttribute("class", "input-error")
+
+        el.appendChild(checkbox)
+        el.appendChild(optionBox)
+        el.appendChild(icon)
+        el.appendChild(error)
+
+        lastOption.parentNode.insertBefore(el, lastOption.nextSibling);
+    }
+
+    function postData(e) {
+        // Form fields, see IDs above
+        e.preventDefault();
+
+        const category = document.querySelector('#category')
+        // const category = (selector === null) ? "" : selector.value
+
+        const question = document.querySelector('#question')
+        const description = document.querySelector('#description')
+        const maxMarks = document.querySelector('#max_marks')
+        const difficulty = document.querySelector('#difficulty')
+        const correctFeedback = document.querySelector("#correct_feedback")
+        const incorrectFeedback = document.querySelector("#incorrect_feedback")
+        const options = document.querySelector('#options')
+
+        const [errors, correctCount, optionsDict] = validateInputs(category, question, description, maxMarks, difficulty, correctFeedback, incorrectFeedback, options)
+        if (errors > 0) {
+            return;
+        }
+
+        const difficultyMap = {
+            1: "Easy",
+            2: "Medium",
+            3: "Hard",
+        }
+        let params = {
+            category: getValueFromElement(category),
+            question: getValueFromElement(question),
+            description: getValueFromElement(description),
+            max_marks: getValueFromElement(maxMarks),
+            difficulty: difficultyMap[getValueFromElement(difficulty)],
+            options: optionsDict,
+            correct_count: correctCount,
+            correct_feedback: getValueFromElement(correctFeedback),
+            incorrect_feedback: getValueFromElement(incorrectFeedback)
+        }
+        var currentUrl = window.location.href
+        var url = new URL(currentUrl);
+        var questionID = url.searchParams.get("question_id");
+        if (questionID !== null) {
+            params["question_id"]=questionID
+            if (!confirmSave(questionID)) {
+                return;
+            }
+        }
+        console.log(params)
+        const http = new XMLHttpRequest()
+        var getUrl = window.location;
+        var baseUrl = getUrl.protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
+        console.log(baseUrl)
+        http.open('POST', baseUrl)
+        http.setRequestHeader('Content-type', 'application/json')
+        http.send(JSON.stringify(params)) // Make sure to stringify
+        http.onload = function() {
+            window.location.href='view_questions';
+        }
+    }
+    // document.getElementsByClassName("show-hide").onclick = function(e) {
+    //     console.log(this.id);
+    //     this.hide()
+    //     // var theDiv = document.getElementById("foo");
+    //     // if(theDiv.style.display == 'none') {
+    //     //     theDiv.style.display = 'block';
+    //     //     this.innerHTML = 'Hide';
+    //     // } else {
+    //     //     theDiv.style.display = 'none';
+    //     //     this.innerHTML = 'Show';
+    //     // }
+    // }
+</script>
+{% endblock content %}

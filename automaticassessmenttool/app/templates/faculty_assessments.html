@@ -1,0 +1,131 @@
+{% extends "layout.html" %}
+{% block content %}
+<script>
+    function confirmPublish(id) {
+      let text = "Are you sure you want to publish assessment "+id+" ? \n\nPlease notice: This assessment can be taken by the students bewteen hand out date and hand in date, and it can't be edited or deleted once it published." ;
+      if (confirm(text) == true) {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/publish_assessment/"+id;
+      } else {
+
+      }
+    }
+
+    function confirmDelete(id) {
+      let text = "Are you sure you want to delete assessment "+id+" ?" ;
+      if (confirm(text) == true) {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/delete_assessment/"+id;
+      } else {
+
+      }
+    }
+
+    function viewDetail(id) {
+      
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/detail_assessment/"+id;
+    }
+
+    function edit(id) {
+      
+      var getUrl = window.location;
+      var baseUrl = getUrl .protocol + "//" + getUrl.host;
+      window.location.href = baseUrl+"/edit_assessment/"+id;
+  }
+
+    function example(id) {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", baseUrl, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({
+            publish: id
+        }));
+      
+    }
+</script>
+
+<div id="search">
+    <div class="content_container w3-margin-top">
+        <div class="w3-card" >
+            <div class="w3-container w3-margin-top w3-margin-bottom">
+                <form action="/faculty_assessments" class="w3-container w3-margin-top w3-margin-bottom" method="POST">
+                  <p style="display:inline-block;">Sort by: </p>
+                  <select id="field" name="field"> 
+                    <option {% if field=="assessment_name" %}selected{% endif %} value="assessment_name">assessment name </option>
+                    <option {% if field=="module_id" %}selected{% endif %} value="module_id">module id </option>
+                    <option {% if field=="module_name" %}selected{% endif %} value="module_name">module name </option>
+                  </select>
+                  <p style="display:inline-block;">= </p>
+                  <input type="text" name="search_value" id="search_value" placeholder="search value" {% if search_value %}value="{{search_value}}"{% endif %}>
+                  <button type="submit" class="w3-button w3-blue" style="border-radius:5px" value="Search">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for assessment in assessments %}
+<div class="content_container w3-margin-top">
+    <div class="w3-card" >
+        <div class="w3-container w3-blue">
+            <h3>Assessment {{assessment.id}}</h3>
+        </div>
+        <div class="w3-container w3-margin-top w3-margin-bottom">
+          <table class="w3-table w3-striped w3-bordered w3-border w3-margin-top w3-hoverable"  id="question_table">
+            <tr>
+                <td style="width:20%">Name</td>
+                <td>{{assessment.assessment_name}}</td>
+            </tr>
+            <tr>
+                <td>Module ID</td>
+                <td>{{assessment.module_id}}</td>
+            </tr>
+            <tr>
+                <td>Module name</td>
+                <td>{%if assessment.module.module_name%}{{assessment.module.module_name}}{%else%}Invalid module id, please edit the module id to fix this{%endif%}</td>
+            </tr>
+            <tr>
+                <td>Type</td>
+                <td>{% if assessment.is_summative %}Summative{%else%}Formative{% endif %} </td>
+            </tr>
+            <tr>
+                <td>Hand out date</td>
+                <td>{{assessment.hand_out_date}}</td>
+            </tr>
+            <tr>
+                <td>Hand in date</td>
+                <td>{{assessment.hand_in_date}}</td>
+            </tr>
+            <tr>
+                <td>Time limit (minutes)</td>
+                <td>{%if assessment.time_allotted ==0%}Unlimited{%else%}{{assessment.time_allotted}}{%endif%}</td>
+            </tr>
+            <tr>
+                <td>Total marks</td>
+                <td>{{assessment.total_marks}}</td>
+            </tr>
+            <tr>
+                <td>Published state:</td>
+                <td>{% if assessment.is_draft %}Unpublished{% else %}Published{% endif %}</td>
+            </tr>
+        </table>
+        </div>
+        <div class="w3-container">
+            <button class="w3-button w3-blue w3-margin-bottom"  style="border-radius:5px;" onclick="viewDetail({{assessment.id}})">view details</button>
+            {% if assessment.is_draft %}
+            <button class="w3-button w3-blue w3-margin-bottom" style="border-radius:5px;" onclick="confirmPublish({{assessment.id}})">publish</button>
+            <button class="w3-button w3-blue w3-margin-bottom" style="border-radius:5px;" onclick="edit({{assessment.id}})">edit</button>
+            <button class="w3-button w3-blue w3-margin-bottom" style="border-radius:5px;" onclick="confirmDelete({{assessment.id}})">delete</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock content %}

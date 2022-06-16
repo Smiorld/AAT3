@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class = "content_container">
+    <h1 class="title text_center">
+        Your statistics
+    </h1>
+
+</div>
+</br>
+
+
+<div class="student_assessment_heading_container text_center">
+    <h2 class="student_assessment_headings text_center">Total statistics</h2>
+
+        <div class="student_assessment_container w3-margin-bottom">
+            <div class="w3-card" >
+                <div class="w3-container w3-blue">
+                    <h3>
+                    Total :{{psa_total}}
+             
+                    </h3>
+                </div>
+                   <div class="w3-container w3-blue">
+                    <h3>
+                    Finished:{{psa_finished}}
+                   
+                    </h3>
+                </div>
+                    <div class="w3-container w3-blue">
+                    <h3>
+                    Not Finished:{{psa_not_finished}}
+               
+                    </h3>
+                </div>
+                <div class="w3-container assessment_container">
+                    <p class = "w3-margin-bottom w3-margin-top">
+                    </p>
+                
+                </div>
+            </div>
+        </div>
+
+</div>
+
+
+
+<div class="student_assessment_heading_container text_center">
+    <h2 class="student_assessment_headings text_center">Statistics for each assessment</h2>
+{% for PSA in PSA %}
+    <!-- Below: also if PSA.is_summative: deadline == passed -->
+    {% if true %}
+        <div class="student_assessment_container w3-margin-bottom">
+            <div class="w3-card" >
+                <div class="w3-container w3-blue">
+                    <h3>Assessment Title: {{PSA.assessment.assessment_name}} | Module ID: {{PSA.assessment.module_id}} | 
+                   Is Summative?: {{PSA.assessment.is_summative}}</h3>
+                </div>
+                <div class="w3-container w3-blue">
+                    <h3>Hand Out Date: {{PSA.assessment.hand_out_date}}  
+                   </h3>
+                </div>
+                <div class="w3-container w3-blue">
+                    Hand In Date: {{PSA.assessment.hand_in_date}} 
+                   </h3>
+                </div>
+                <div class="w3-container assessment_container">
+                    <p class = "w3-margin-bottom w3-margin-top"> 
+                     Total Marks: {{PSA.assessment.total_marks}} 
+                    </p>
+                  <p class = "w3-margin-bottom w3-margin-top">Your Awarded Marks: {{PSA.awarded_marks}} </p>
+                  <p class = "w3-margin-bottom w3-margin-top">TimeTaken: {{PSA.time_taken}} </p>
+                  <p class = "w3-margin-bottom w3-margin-top">Attempts: {{PSA.no_of_attempts}} </p>
+                   <p class = "w3-margin-bottom w3-margin-top">Is Completed?: {{PSA.is_complete}} </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+</div>
+
+
+{% endblock content %}

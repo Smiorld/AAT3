@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="add_assessments content_container">
+    <form class="form-container wide-form" action="/add_assessments" method="POST" id="add_assessments">
+        <h1>Add Assessments</h1>
+        <p>Module ID <span class="w3-tooltip w3-grey">？<span class="w3-text w3-tag w3-blue" style="border-radius:5px;"><b>Please enter an interger</b></span></span></p>
+        {{ form.module_id(id="module_id", class='input', placeholder='Module ID') }}
+        <p>Assessment Name <span class="w3-tooltip w3-grey">？<span class="w3-text w3-tag w3-blue" style="border-radius:5px;"><b>Please enter the name</b></span></span></p>
+        {{ form.assessment_name(id="assessment_name", class='input', placeholder='Assessment Name') }}
+        <p>Hand out date <span class="w3-tooltip w3-grey">？<span class="w3-text w3-tag w3-blue" style="border-radius:5px;"><b>This assessment can be taken between <b class="w3-text-black">hand out date</b> and <b class="w3-text-black">hand in date</b> after this assessment is <b class="w3-text-black">published.</b></b></span></span></p>
+        {{ form.hand_out_date(id="hand_out_date", class='input', placeholder='Hand out Date') }}
+        <p>Hand in date <span class="w3-tooltip w3-grey">？<span class="w3-text w3-tag w3-blue" style="border-radius:5px;"><b>This is the deadline to submit this assessment.</b></span></span></p>
+        {{ form.hand_in_date(id="hand_in_date", class='input', placeholder='Hand in Date') }}
+        <p>What type is this asssessment <span class="w3-tooltip w3-grey">？<span class="w3-text w3-tag w3-blue" style="border-radius:5px;"><b><b class="w3-text-black">Summative:</b> Can only be taken once, no immediate feedback. <b class="w3-text-black">Formative:</b> Can be taken unlimited times with immediate feedback given.</b></span></span></p>
+        {{ form.is_summative(id="is_summative", class='input', placeholder='Is this assessment summative? 1 for yes,0 for no') }}
+        <p>What is the time limit, 0 for unlimited <span class="w3-tooltip w3-grey">？<span class="w3-text w3-tag w3-blue" style="border-radius:5px;"><b>Please enter an interger for minutes.</b></span></span></p>
+        {{ form.time_allotted(id="time_allotted", class='input', placeholder='Minutes Allowed') }}
+        {{ form.submit(id="submit", class='submit', placeholder='Add assessment') }}
+    </form>
+</div>
+{% endblock content %}

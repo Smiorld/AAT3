@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+importlib-metadata = "==1.5.0"
+python-frontmatter = "==1.0.0"
+Flask = "==2.0.2"
+Flask-Login = "==0.5.0"
+Flask-SQLAlchemy = "==2.5.1"
+Flask-WTF = "==1.0.0"
+SQLAlchemy = "==1.4.26"
+Werkzeug = "==2.0.2"
+WTForms = "==3.0.0"
+email-validator = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"

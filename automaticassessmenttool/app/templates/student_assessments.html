@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+{% block content %}
+<script>
+    function confirm_begin(id) {
+      let text = "Are you sure you want to begin this assessment? If this assessment is timed, it will begin as soon as the next page is loaded." ;
+
+      if (confirm(text) == true) {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/take_assessment/"+id;
+      } else {
+
+      }
+    }
+    function generate_formative() {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/generate_formative";
+    }
+</script>
+<div class = "content_container">
+    <h1 class="title text_center">
+        Your Assessments
+    </h1>
+    <form method = "POST" class="align_right" onchange="submit()">
+        Select Module: {{form.module}}
+    </form>
+</div>
+</br>
+<div class="student_assessment_heading_container">
+    <h2 class="student_assessment_headings text_center">Summative Assessments</h2>
+{% for PSA in PSA %}
+    {% if PSA.assessment.is_summative and PSA.is_complete == False and PSA.assessment.hand_in_date > now > PSA.assessment.hand_out_date%}
+        <div class="student_assessment_container w3-margin-bottom">
+            <div class="w3-card" >
+                <div class="w3-container w3-blue">
+                    <h3>Assessment Title: {{PSA.assessment.assessment_name}} | Module ID: {{PSA.assessment.module_id}}</h3>
+                </div>
+                <div class="w3-container assessment_container">
+                    <div class = "w3-margin-bottom w3-margin-top">
+                        {% if PSA.assessment.time_allotted > 0 and current_user.extra_time %}
+                            <p class = "w3-margin-bottom w3-margin-top">Total Marks: {{PSA.assessment.total_marks}} | Allotted Time: {{PSA.assessment.time_allotted*1.5}} minutes</p>
+                        {% elif PSA.assessment.time_allotted > 0 and not current_user.extra_time %}
+                            <p class = "w3-margin-bottom w3-margin-top">Total Marks: {{PSA.assessment.total_marks}} | Allotted Time: {{PSA.assessment.time_allotted}} minutes</p>
+                        {% else %}
+                            <p class = "w3-margin-bottom w3-margin-top">Total Marks: {{PSA.assessment.total_marks}}</p>
+                        {% endif %}
+                        <p>Hand-in Date: {{PSA.assessment.hand_in_date}}</p>
+                    </div>
+                    <div class="summative-button"><button class="w3-button w3-blue" style="border-radius:5px;" onclick="confirm_begin({{PSA.assessment.id}})">Take Assessment</button></div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+</div>
+<div class="student_assessment_heading_container">
+    <h2 class="student_assessment_headings text_center">Formative Assessments</h2>
+    <button class="w3-button w3-blue generate_formative" style="border-radius:5px;" onclick="generate_formative()">Generate Formative</button>
+{% for PSA in PSA %}
+    {% if PSA.assessment.is_summative == False and PSA.is_complete == False and now > PSA.assessment.hand_out_date and not PSA.assessment.module_id == 999%}
+        <div class="student_assessment_container w3-margin-bottom">
+            <div class="w3-card" >
+                <div class="w3-container w3-blue">
+                    <h3>Assessment Title: {{PSA.assessment.assessment_name}} | Module ID: {{PSA.assessment.module_id}}</h3>
+                </div>
+                <div class="w3-container assessment_container">
+                    {% if PSA.assessment.time_allotted > 0 and current_user.extra_time %}
+                        <p class = "w3-margin-bottom w3-margin-top">Total Marks: {{PSA.assessment.total_marks}} | Allotted Time: {{PSA.assessment.time_allotted*1.5}} minutes</p>
+                    {% elif PSA.assessment.time_allotted > 0 and not current_user.extra_time %}
+                        <p class = "w3-margin-bottom w3-margin-top">Total Marks: {{PSA.assessment.total_marks}} | Allotted Time: {{PSA.assessment.time_allotted*1.5}} minutes</p>
+                    {% else %}
+                        <p class = "w3-margin-bottom w3-margin-top">Total Marks: {{PSA.assessment.total_marks}}</p>
+                    {% endif %}
+
+                    <div class="right-button"><button class="w3-button w3-blue" style="border-radius:5px;" onclick="confirm_begin({{PSA.assessment.id}})">Take Assessment</button></div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+</div>
+<div class="student_assessment_heading_container text_center">
+    <h2 class="student_assessment_headings text_center">Completed Summative Assessments</h2>
+{% for PSA in PSA %}
+    <!-- Below: also if PSA.is_summative: deadline == passed -->
+    {% if PSA.assessment.is_summative and PSA.is_complete and now > PSA.assessment.hand_in_date%}
+        <div class="student_assessment_container w3-margin-bottom">
+            <div class="w3-card" >
+                <div class="w3-container w3-blue">
+                    <h3>Assessment Title: {{PSA.assessment.assessment_name}} | Module ID: {{PSA.assessment.module_id}}</h3>
+                </div>
+                <div class="w3-container assessment_container">
+                    <p class = "w3-margin-bottom w3-margin-top">Total Marks: {{PSA.assessment.total_marks}} </p>
+                    <div class="right-button"><a href="{{ url_for('assessment_feedback', assessment_id=PSA.assessment.id)}}"> <button class="w3-button w3-blue" style="border-radius:5px;">Review Assessment</button></a></div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+</div>
+<div class="student_assessment_heading_container">
+    <h2 class="student_assessment_headings text_center">Completed Formative Assessments</h2>
+{% for PSA in PSA %}
+    {% if PSA.assessment.is_summative == False and PSA.is_complete and PSA.no_of_attempts == 1 and not PSA.assessment.module_id == 999%}
+        <div class="student_assessment_container w3-margin-bottom">
+            <div class="w3-card" >
+                <div class="w3-container w3-blue">
+                    <h3>Assessment Title: {{PSA.assessment.assessment_name}} | Module ID: {{PSA.assessment.module_id}}</h3>
+                </div>
+                <div class="w3-container assessment_container">
+                    <p class = "w3-margin-bottom w3-margin-top">Total Marks: {{PSA.assessment.total_marks}}</p>
+                    <div class="right-button"><a href="{{ url_for('assessment_feedback', assessment_id=PSA.assessment.id)}}"><button class="w3-button w3-blue" style="border-radius:5px;">Review Assessment</button></a></div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+</div>
+
+{% endblock content %}

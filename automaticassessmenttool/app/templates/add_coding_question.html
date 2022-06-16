@@ -1,0 +1,354 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{{ ckeditor.load() }}
+<script>
+
+$(document).ready(function() {
+    $("#addTestCase").click(function() {
+        var value = parseInt(document.getElementById('no_tests').value);
+        value++;
+        console.log(value)
+        document.getElementById('no_tests').value = value;
+        var newDiv = $("#SomeClassTemplate").clone();
+
+    newDiv.find('input').attr("name", "flist"+(value-1)+"[]")
+    newDiv.find('.divider').text("Test Case " + (value) +":")
+    newDiv.attr("style","display: unset;")
+    newDiv.attr("id","flist"+(value-1)+"[]")
+    $("#flist").append(newDiv)
+    newDiv.show();
+    document.getElementById('deleteTestCase').style.display = "unset";
+        });
+    });
+
+    $(document).ready(function() {
+        var value = parseInt(document.getElementById('no_tests').value, 10);
+        console.log("value" + value)
+        if (value == 1) {
+        document.getElementById('deleteTestCase').style.display = "none";
+        }
+
+     $("#deleteTestCase").click(function() {
+        var value = parseInt(document.getElementById('no_tests').value, 10);
+        const element = document.getElementById("flist"+(value-1)+"[]");
+        element.remove();
+        value--;
+        document.getElementById('no_tests').value = value;
+        if (value == 1) {
+        document.getElementById('deleteTestCase').style.display = "none";
+        }
+
+    });
+    });
+
+</script>
+<div class="add_question"  onload="checkDisplay()">
+    <form class="form-container wide-form box" action="/add_coding_question" method="POST" id="add_question">
+        <h1>Save Python Coding Question</h1>
+        {{ form.question_id(id="question_id", class='input') }}
+        <div class="input-control">
+            <br><p class="form-label">Question/ Description:</p>{{ form.question(id="question", class='input big-text-area') }}
+            <div class="input-error"></div>
+        </div>
+
+        <p class="form-label">Function arguments:
+        <div class='tt' data-tooltip='Separate multiple arguments with a comma, e.g. arg1, arg2'>
+            <div class="input-control">{{ form.arguments(id="arguments", class='input')}}
+                <div class="input-error"></div>
+            </div>
+        </div></p>
+        {% if no_test_cases > 0 %}
+        {% for i in range(no_test_cases) %}
+        {% set no = (i -1) | string()%}
+        {% set tc_no = i + 1 %}
+        {% set output = list_test_output[i] %}
+        {% set input = list_test_input[i] %}
+        {% set case_name = list_test_name[i] %}
+        {% set name = "flist" + (i|string) + "[]" %}
+        <div id={{name}}>
+            <div class='divider'>Test Case {{tc_no}}:</div>
+            <p class="form-label">Name:<div class='tt' data-tooltip='Visible to student on incorrect answer. Must be unique!'>
+            <div class="input-control">
+                <input id=tcn class='input flist' required type='text' value="{{case_name}}" name="{{name}}"></input>
+                <div class="input-error"></div>
+            </div>
+            </div></p>
+            <p class="form-label">Inputs:<div class='tt' data-tooltip='Separate multiple inputs with a comma, number of inputs must match arguments.'>
+             <div class="input-control">
+            <input id=tci class='input flist' required type='text' name="{{name}}" value="{{input}}"></input>
+             <div class="input-error"></div>
+            </div>
+             </div></p>
+            <p class="form-label">Outputs:<div class='tt' data-tooltip='Separate multiple outputs with a comma.'>
+            <div class="input-control">
+                <input id=tco class='input flist' required type='text' name="{{name}}" value="{{output}}"></input>
+                 <div class="input-error"></div>
+            </div>
+            </div></p>
+        </div>
+        {% endfor %}
+        {{ form.flist(id="flist")}}
+        {% else %}
+        <div class='divider'>Test Case 1:</div>
+
+        <p class="form-label">Name:<div class='tt' data-tooltip='Visible to student on incorrect answer. Must be unique!'>
+        <div class="input-control">
+            <input id=tcn class='input flist' required type='text' value='' name="flist0[]"></input>
+        <div class="input-error"></div>
+        </div></div></p>
+
+        <p class="form-label">Inputs:<div class='tt' data-tooltip='Separate multiple inputs with a comma, number of inputs must match arguments.'>
+         <div class="input-control">
+            <input id=tci class='input flist' required type='text' name="flist0[]" value=''></input>
+             <div class="input-error"></div>
+         </div>
+        </div></p>
+        <p class="form-label">Outputs:<div class='tt' data-tooltip='Separate multiple outputs with a comma.'>
+         <div class="input-control">
+        <input id=tco class='input flist' required type='text' name="flist0[]" value=''></input>
+          <div class="input-error"></div>
+            </div>
+        </div></p>
+        {{ form.flist(id="flist")}}
+        {% endif %}
+        <div class="buttons flex" style="display:inline;padding:10px 0 10px;">
+            <button class="w3-button w3-round-xxlarge w3-medium w3-blue w3-hover-blue hover-effect" style="display:inline; margin-top: 10px; margin-bottom: 20px;"  type="button" id="addTestCase" value="0">Add Test Case</button>
+        </div>
+        <div class="buttons flex" style="display:inline; padding:10px 0 10px;">
+            <button class="w3-button w3-round-xxlarge w3-medium w3-red w3-hover-red red-hover-effect" style="display:inline; margin-top: 10px; margin-bottom: 20px;" type="button" id="deleteTestCase" value="{{no_test_cases}}">Delete Test Case</button>
+        </div>
+        <div class="input-control">
+            <br><p class="form-label">Feedback for correct answers:</p><br>{{ form.correct_feedback(id="correct_feedback", class='input')}}
+            <div class="input-error"></div>
+        </div>
+        <div class="input-control">
+            <br><p class="form-label">Feedback for incorrect answers:</p><br>{{ form.incorrect_feedback(id="incorrect_feedback", class='input')}}
+             <div class="input-error"></div>
+        </div>
+        <div class="input-control">
+            <br><p class="form-label">Marks per test case:</p>{{ form.max_marks(id="marks", class='input', placeholder='Marks per test case...') }}
+            <div class="input-error"></div>
+        </div>
+
+            <br><p class="form-label">Question category:</p>{{ form.category(id="cat", class='input', placeholder='Question category...') }}
+
+        <div class="input-control">
+            <br><p class="form-label">Question difficulty:</p>{{ form.difficulty(id="diff", class='input') }}
+            <div class="input-error"></div>
+        </div>
+        {{form.no_tests(id="no_tests", value=no_test_cases, type="hidden")}}
+        {{form.submit(id="submit", class='submit', placeholder='Save and Test Question', style='display: none') }}
+        <input class="submit" name="submit2" onclick="overrideSubmit(event)" placeholder="Save and Test Question" type="submit" value="Save and Test Question">
+    </form>
+    {{ ckeditor.load() }}
+    {{ ckeditor.config(name='correct_feedback') }}
+    {{ ckeditor.config(name='incorrect_feedback') }}
+</div>
+<div class="SomeClass" id='SomeClassTemplate' style='display:none'>
+    <div class='divider'>Test Case</div>
+   <p class="form-label">Name:
+    <div class='tt' data-tooltip='Visible to student on incorrect answer. Must be unique!'>
+        <input class='input flist' required type='text' value=''></input>
+    </div>
+   </p>
+      <p class="form-label">Inputs:
+    <div class='tt' data-tooltip='Separate multiple inputs with a comma, number of inputs must match arguments.'>
+        <input class='input flist' required type='text' value=''></input>
+    </div>
+   </p>
+    <p class="form-label">Outputs:
+        <div class='tt' data-tooltip='Separate multiple outputs with a comma.'>
+            <input class='input flist' required type='text' value=''></input>
+        </div>
+   </p>
+</div>
+
+<script>
+
+    const validateInputs = (question, description, marks, diff, correct_feedback, incorrect_feedback, arguments, tcn, tco) => {
+        try {
+            const tcnVal = getValueFromElement(tcn);
+            const tcoVal = getValueFromElement(tco);
+            const tciVal = getValueFromElement(tci);
+            const questionVal =  getValueFromElement(question);
+            const argsVal =  getValueFromElement(arguments);
+            const maxMarksVal = getValueFromElement(marks);
+            const difficultyVal = getValueFromElement(diff);
+            const correctFeedbackVal = getValueFromElement(correct_feedback)
+            const incorrectFeedbackVal = getValueFromElement(incorrect_feedback)
+
+            let errors = 0
+            if(questionVal === '') {
+                setError(question, 'Question is required');
+                errors++;
+            } else {
+                setSuccess(question);
+            }
+              if(argsVal === '') {
+                setError(arguments, 'Argument is required');
+                errors++;
+            } else {
+                setSuccess(arguments);
+            }
+               if(tcnVal === '') {
+                setError(tcn, 'Name is required');
+                errors++;
+            } else {
+                setSuccess(tcn);
+            }
+            if(tcoVal === '') {
+                setError(tco, 'Output is required');
+                errors++;
+            } else {
+                setSuccess(tco);
+            }
+            if(tciVal === '') {
+                setError(tci, 'Input is required');
+                errors++;
+            } else {
+                setSuccess(tci);
+            }
+            if(maxMarksVal === '') {
+                setError(marks, 'Marks is required');
+                errors++;
+            } else {
+                setSuccess(marks);
+            }
+            if(difficultyVal === '' || difficultyVal <= 0) {
+                setError(diff, 'Difficulty is required');
+                errors++;
+            } else {
+                setSuccess(diff);
+            }
+
+            }
+            catch(err) {
+            }
+            }
+
+
+    const getValueFromElement = (selector) => {
+        return (selector === null) ? "" : selector.value.trim()
+    };
+     const setError = (element, message) => {
+        const inputControl = element.parentElement;
+        const errorDisplay = inputControl.querySelector('.input-error');
+
+        errorDisplay.innerText = message;
+        inputControl.classList.add('error');
+        inputControl.classList.remove('success')
+    }
+
+    const setSuccess = element => {
+        const inputControl = element.parentElement;
+        const errorDisplay = inputControl.querySelector('.input-error');
+
+        errorDisplay.innerText = '';
+        inputControl.classList.add('success');
+        inputControl.classList.remove('error');
+    };
+
+    const overrideSubmit = (e) => {
+        e.preventDefault();
+
+        const arguments = document.querySelector('#arguments')
+        const tcn = document.querySelector('#tcn')
+        const tci = document.querySelector('#tci')
+        const tco = document.querySelector('#tco')
+        const question = document.querySelector('#question')
+        const description = document.querySelector('#description')
+        const maxMarks = document.querySelector('#marks')
+        const difficulty = document.querySelector('#diff')
+        const correctFeedback = document.querySelector("#correct_feedback")
+        const incorrectFeedback = document.querySelector("#incorrect_feedback")
+
+        const errors = validateInputs(question, description, maxMarks, difficulty, correctFeedback, incorrectFeedback, arguments, tcn, tco, tci)
+        if (errors > 0) {
+            return;
+        }
+
+        e.preventDefault()
+        var currentUrl = window.location.href
+        var url = new URL(currentUrl);
+        var id = url.searchParams.get("question_id");
+        if (id === null || confirmSave(id)) {
+            submit = document.querySelector('#submit')
+            submit.click()
+        }
+    }
+
+    function confirmSave(id) {
+        let text = "Are you sure you want overwrite the current question (id: "+id+") ?" ;
+        return confirm(text);
+    }
+
+    const initializeValues = () => {
+        var currentUrl = window.location.href
+        var url = new URL(currentUrl);
+        var questionID = url.searchParams.get("question_id");
+        if (questionID !== null) {
+            const params = {
+                question_id: questionID
+            }
+            const xhr = new XMLHttpRequest()
+            var getUrl = window.location;
+            var baseUrl = getUrl.protocol + "//" + getUrl.host + "/" + "api/get_questions";
+            console.log(baseUrl)
+            xhr.responseType = 'json';
+            xhr.open('POST', baseUrl)
+            xhr.setRequestHeader('Content-type', 'application/json')
+            xhr.send(JSON.stringify(params)) // Make sure to stringify
+
+            xhr.onload = function() {
+                var jsonResponse = xhr.response;
+                console.log(jsonResponse.difficulty)
+                if (jsonResponse["is_multiple_choice"] === true) {
+                    return
+                }
+
+                jsonResponse["question_id"] = questionID
+
+
+                difficultyMap = {
+                    Easy: 1,
+                    Medium: 2,
+                    Hard: 3,
+                }
+                jsonResponse["difficulty"] = difficultyMap[jsonResponse["difficulty"]]
+                
+                idMapper = {
+                    question_id: "#question_id",
+                    question: "#question",
+                    arguments: "#arguments",
+                    // test_inputs: "#inputs",
+                    // expected_outputs: "#outputs",
+                    correct_feedback: "#correct_feedback",
+                    incorrect_feedback: "#incorrect_feedback",
+                    max_marks: "#marks",
+                    category: "#cat",
+                    difficulty: "#diff"
+                }
+                const no_test_value = parseInt(document.getElementById('no_tests').value)
+                console.log(no_test_value)
+                console.log(jsonResponse["question_id"])
+                for (var key of Object.keys(idMapper)) {
+                    console.log(key)
+                    if (key == "max_marks") {
+                    document.querySelector(idMapper["max_marks"]).value = parseInt(jsonResponse[key]) / no_test_value;
+                    } else {
+                    document.querySelector(idMapper[key]).value = jsonResponse[key];
+                    }
+                }
+
+            }
+        }
+    }
+    window.onload = initializeValues;
+
+</script>
+<script>
+
+
+</script>
+{% endblock content %}

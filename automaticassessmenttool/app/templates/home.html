@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content_container back-box">
+    <h1 style="padding: 30px 0 0 0;" class="title text_center">
+        {% if current_user.is_authenticated %} Hello {{current_user.first_name}}, Welcome to the Automatic Assessment Tool! {% else %} Welcome to the Automatic Assessment Tool! {% endif%}
+    </h1>
+    <h2 style=" font-family:Archivo; text-align:center; font-size: 2rem;">
+        By Team B
+    </h2>
+    <div class="subtitle text_center">
+    </div>
+    <section class="question_options" style="display: unset;">
+        <figure style="padding: 30px 0 30px 0; display:flex; justify-content:center;">
+            <img src="{{ url_for('static', filename='assets/landing_page.svg') }}" alt="undraw.com open source graphics">
+        </figure>
+    </section>
+    <div class="abs">
+        <div class="align_right">
+            {% if not current_user.is_authenticated %}<a style="text-decoration:unset;" href="{{url_for('login')}}"><button class="button next_button">Login</button></a>{%endif%}
+        </div>
+    </div>
+
+</div>{% endblock content %}

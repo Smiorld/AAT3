@@ -1,0 +1,200 @@
+{% extends "layout.html" %}
+{% block content %}
+<script>
+    function confirmRemove(index,assessment_id,question_id) {
+      let text = "Are you sure you want to remove question "+index+" from this assessment?" ;
+      if (confirm(text) == true) {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/remove_assessment2question/"+assessment_id+"/"+question_id;
+      } else {
+
+      }
+    }
+
+    function confirmAdd(assessment_id,question_id) {
+      let text = "Are you sure you want to add this question to the assessment?" ;
+      if (confirm(text) == true) {
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/add_assessment2question/"+assessment_id+"/"+question_id;
+      } else {
+
+      }
+    }
+
+    function cancelEdit(assessment_id){
+        var getUrl = window.location;
+        var baseUrl = getUrl .protocol + "//" + getUrl.host;
+        window.location.href = baseUrl+"/edit_assessment/"+assessment_id;
+    }
+</script>
+<!-- view basic assessment information part -->
+<div id="j-left">
+
+    <div class="content_container w3-margin-top">
+        <div class="w3-card" >
+            <div class="w3-container w3-green">
+                <h3>Assessment {{assessment.id}}</h3>
+            </div>
+            <div class="w3-container w3-margin-top w3-margin-bottom">
+            <form action="/edit_assessment/{{assessment.id}}" method="POST" id="update_assessments">
+                <P>Name: </P>
+                {{ form.assessment_name(id="assessment_name", class="input", placeholder='Assessment Name', value=assessment.assessment_name) }}
+                <p>Module id: </p>
+                {{ form.module_id(id="module_id", class="input", placeholder='Module ID', value=assessment.module_id) }}
+                <p>Module name: </p>
+                <input class="input" id="module_name" name="module_name" type="text" value="{{assessment.module.module_name}}" placeholder="please enter a valid module id." readonly style="background-color : #d1d1d1; ">
+                <p>Type: </p>
+                <select id="is_summative" name="is_summative" class="input" >
+                    <option value="True" {% if assessment.is_summative %}selected{%endif%}>Summative</option>
+                    <option value="False"{% if not assessment.is_summative %}selected{%endif%}>Formative</option>
+                </select>
+                <p>Hand out date: </p>
+                {{ form.hand_out_date(id="hand_out_date", class="input", placeholder='Hand Out Date', value=assessment.hand_out_date.strftime("%Y-%m-%dT%H:%M")) }}
+                <p>Hand in date:</p>
+                {{ form.hand_in_date(id="hand_in_date", class="input", placeholder='Hand In Date', value=assessment.hand_in_date.strftime("%Y-%m-%dT%H:%M")) }}
+                <p>Time limit in minutes, 0 for unlimited: </p>
+                {{ form.time_allotted(id="time_allotted", class="input", placeholder='Time Limit', value=assessment.time_allotted) }}
+                <p>Total marks: </p>
+                <input class="input" id="total_marks" name="total_marks" type="text" value="{{assessment.total_marks}}" placeholder="0" readonly style="background-color : #d1d1d1; ">
+                <p>Published state: </p>
+                <input class="input" id="is_draft" name="is_draft" type="text" value="{% if assessment.is_draft %}unpublished{% else %}published{% endif %}" readonly style="background-color : #d1d1d1; ">
+                <button class="w3-button w3-blue w3-margin-bottom" style="border-radius:5px;" type="submit" id="submit" name="submit" placeholder="Add assessment" type="submit">update above changes</button>
+                <a class="w3-button w3-red w3-margin-bottom" style="border-radius:5px;" onclick="cancelEdit({{assessment.id}})" >discard above changes</a>
+            </form>
+            </div>
+        </div>
+        
+    </div>
+
+<!-- view added quesitons -->
+    {% for added_question in added_questions %}
+    {% set question = added_question.question %}
+    <div class="content_container w3-margin-top">
+        <div class="w3-card" >
+            <div class="w3-container w3-blue">
+                <h3>Question {{loop.index}}</h3>
+            </div>
+            <div class="w3-container w3-margin-top w3-margin-bottom">
+                <table class="w3-table w3-striped w3-bordered w3-border w3-margin-top w3-hoverable"  id="question_table">
+                    <tr>
+                        <td style="width:20%">question id</td>
+                        <td>{{question.id}}</td>
+                    </tr>
+                    <tr>
+                        <td>question</td>
+                        <td>{{question.question | safe}}</td>
+                    </tr>
+                    {% if question.is_multiple_choice %}
+                    <tr>
+                        <td>type</td>
+                        <td>multiple choice </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td>type</td>
+                        <td>code</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td>category</td>
+                        <td>{{question.category}}</td>
+                    </tr>
+                    <tr>
+                        <td>difficulty</td>
+                        <td>{{question.difficulty}}</td>
+                    </tr>
+                    <tr>
+                        <td>total marks</td>
+                        <td>{{question.max_marks}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="w3-container">
+                <button class="w3-button w3-blue w3-margin-bottom"  style="border-radius:5px;" onclick="confirmRemove({{loop.index}},{{assessment.id}},{{question.id}})">delete</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+
+
+</div>
+
+<!-- view question part -->
+
+<div id="j-right">
+
+<!-- search for quesiton -->    
+<div id="search">
+    <div class="content_container w3-margin-top">
+        <div class="w3-card" >
+            <div class="w3-container w3-margin-top w3-margin-bottom">
+                <form action="/search_question_for_assessment/{{assessment.id}}" class="w3-container w3-margin-top w3-margin-bottom" method="POST">
+                  <p style="display:inline-block;"> Search questions by: </p>
+                  <select id="field" name="field"> 
+                    <option {% if field=="question" %}selected{% endif %} value="question">question </option>
+                    <option {% if field=="category" %}selected{% endif %} value="category">category </option>
+                    <option {% if field=="difficulty" %}selected{% endif %} value="difficulty">difficulty </option>
+                    <option {% if field=="question_id" %}selected{% endif %} value="question_id">question_id </option>
+                  </select>
+                  <p style="display:inline-block;">= </p>
+                  <input type="text" name="search_value" id="search_value" placeholder="search value" {% if search_value %}value="{{search_value}}"{% endif %}>
+                  <button type="submit" class="w3-button w3-blue" style="border-radius:5px" value="Search">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for question in questions_repository%}
+    <div class="content_container w3-margin-top">
+        <div class="w3-card" >
+            <div class="w3-container w3-blue">
+                <h3>Question</h3>
+            </div>
+            <div class="w3-container w3-margin-top w3-margin-bottom">
+
+                <table class="w3-table w3-striped w3-bordered w3-border w3-margin-top w3-hoverable"  id="question_table">
+                    <tr>
+                        <td style="width:20%">question id</td>
+                        <td>{{question.id}}</td>
+                    </tr>
+                    <tr>
+                        <td>question</td>
+                        <td>{{question.question | safe}}</td>
+                    </tr>
+                    {% if question.is_multiple_choice %}
+                    <tr>
+                        <td>type</td>
+                        <td>multiple choice </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td>type</td>
+                        <td>code</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td>category</td>
+                        <td>{{question.category}}</td>
+                    </tr>
+                    <tr>
+                        <td>difficulty</td>
+                        <td>{{question.difficulty}}</td>
+                    </tr>
+                    <tr>
+                        <td>total marks</td>
+                        <td>{{question.max_marks}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="w3-container">
+                <button class="w3-button w3-blue w3-margin-bottom"  style="border-radius:5px;" onclick="confirmAdd({{assessment.id}},{{question.id}})">add</button>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}

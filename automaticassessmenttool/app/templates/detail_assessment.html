@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+{% block content %}
+<!-- view basic assessment information part -->
+<div>
+
+    <div class="content_container w3-margin-top">
+        <div class="w3-card" >
+            <div class="w3-container w3-green">
+                <h3>Assessment {{assessment.id}}</h3>
+            </div>
+            <div class="w3-container w3-margin-top w3-margin-bottom">
+                <table class="w3-table w3-striped w3-bordered w3-border w3-margin-top w3-hoverable"  id="question_table">
+                    <tr>
+                        <td style="width:20%">Name</td>
+                        <td>{{assessment.assessment_name}}</td>
+                    </tr>
+                    <tr>
+                        <td>Module ID</td>
+                        <td>{{assessment.module_id}}</td>
+                    </tr>
+                    <tr>
+                        <td>Module name</td>
+                        <td>{%if assessment.module.module_name%}{{assessment.module.module_name}}{%else%}Invalid module id, please edit the module id to fix this{%endif%}</td>
+                    </tr>
+                    <tr>
+                        <td>Type</td>
+                        <td>{% if assessment.is_summative %}summative{%else%}formative{% endif %} </td>
+                    </tr>
+                    <tr>
+                        <td>Hand out date</td>
+                        <td>{{assessment.hand_out_date}}</td>
+                    </tr>
+                    <tr>
+                        <td>Hand in date</td>
+                        <td>{{assessment.hand_in_date}}</td>
+                    </tr>
+                    <tr>
+                        <td>Time limit (minutes)</td>
+                        <td>{%if assessment.time_allotted ==0%}Unlimited{%else%}{{assessment.time_allotted}}{%endif%}</td>
+                    </tr>
+                    <tr>
+                        <td>Total marks</td>
+                        <td>{{assessment.total_marks}}</td>
+                    </tr>
+                    <tr>
+                        <td>Published state:</td>
+                        <td>{% if assessment.is_draft %}Unpublished{% else %}Published{% endif %}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+
+<!-- view added quesitons -->
+    {% for added_question in added_questions %}
+    {% set question = added_question.question %}
+    <div class="content_container w3-margin-top">
+        <div class="w3-card" >
+            <div class="w3-container w3-blue">
+                <h3>Question {{loop.index}}</h3>
+            </div>
+            <div class="w3-container w3-margin-top w3-margin-bottom">
+                <table class="w3-table w3-striped w3-bordered w3-border w3-margin-top w3-hoverable"  id="question_table">
+                    <tr>
+                        <td style="width:20%">question id</td>
+                        <td>{{question.id}}</td>
+                    </tr>
+                    <tr>
+                        <td>question</td>
+                        <td>{{question.question | safe}}</td>
+                    </tr>
+                    {% if question.is_multiple_choice %}
+                    <tr>
+                        <td>type</td>
+                        <td>multiple choice </td>
+                    </tr>
+                    <tr>
+                        <td>choices</td>
+                        <td>{{question.choices}}</td>
+                    </tr>
+                    <tr>
+                        <td>correct answer</td>
+                        <td>{{question.correct_answer}}</td>
+                    </tr>
+      
+                    {% else %}
+                    <tr>
+                        <td>type</td>
+                        <td>code</td>
+                    </tr>
+                    <tr>
+                        <td>arguments</td>
+                        <td>{{question.arguments}}</td>
+                    </tr>
+                    <tr>
+                        <td>test inputs</td>
+                        <td>{{question.test_inputs}}</td>
+                    </tr>
+                    <tr>
+                        <td>expected outputs</td>
+                        <td>{{question.expected_outputs}}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td>correct feedback</td>
+                        <td>{{question.correct_feedback | safe}}</td>
+                    </tr>
+                    <tr>
+                        <td>incorrect feedback</td>
+                        <td>{{question.incorrect_feedback | safe}}</td>
+                    </tr>
+                    <tr>
+                        <td>category</td>
+                        <td>{{question.category}}</td>
+                    </tr>
+                    <tr>
+                        <td>difficulty</td>
+                        <td>{{question.difficulty}}</td>
+                    </tr>
+                    <tr>
+                        <td>total marks</td>
+                        <td>{{question.max_marks}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}

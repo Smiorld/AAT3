@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+<form method="POST" action="">
+    <div class="form-container">
+        <h1>Login</h1>
+    {{ form.csrf_token }}
+    <p class="user_input">{{ form.email(id="email", class="input") }}</p>
+    <p class="user_input">{{ form.password(id="password", class="input") }}</p>
+    <p class="submit center"><input type="submit" value="Login"></p>
+    {% for errors in [form.email.errors, form.password.errors] %}
+        {% for error in errors %}
+          <span class="center error">{{ error }}</span>
+        {% endfor %}
+    {% endfor %}
+    </div>
+</form>
+{% endblock content %}
